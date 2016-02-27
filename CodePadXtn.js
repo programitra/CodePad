@@ -12,11 +12,30 @@
 	var buttonValue = 0;
 	var count = 0;
 	var inputArray = [];
+	var LED1ColourCmd = new Uint8Array(3);
+    var LED2ColourCmd = new Uint8Array(3);	
+    var LED3ColourCmd = new Uint8Array(3);
+    var LED4ColourCmd = new Uint8Array(3);	
+	var LED5ColourCmd = new Uint8Array(3);
+    var LED6ColourCmd = new Uint8Array(3);	
+    var LED7ColourCmd = new Uint8Array(3);
+    var LED8ColourCmd = new Uint8Array(3);	
+	
+	 LED1ColourCmd[2] = 0xff;
+     LED2ColourCmd[2] = 0xff;	
+     LED3ColourCmd[2] = 0xff;
+     LED4ColourCmd[2] = 0xff;
+	 LED5ColourCmd[2] = 0xff;
+     LED6ColourCmd[2] = 0xff;
+     LED7ColourCmd[2] = 0xff;
+     LED8ColourCmd[2] = 0xff;
+
+	
     function processData() {
         var bytes = new Uint8Array(rawData);
 		
 		if (watchdog) { 
-             // Seems to be a valid PicoBoard. 
+             // Seems to be a valid CodePad. 
              clearTimeout(watchdog); 
              watchdog = null; 
          } 
@@ -77,7 +96,7 @@
 	
 	function deviceOpened(dev) {
 		if (!dev) {
-            console.log('Dev open failed');
+            console.log('Device open failed');
             tryNextDevice();
             return;
         }
@@ -94,7 +113,7 @@
             }
         });
 
-        // Tell the PicoBoard to send a input data every 50ms
+        // Tell the CodePad to send a input data every 100 ms
 	//CODEPAD - populate ping command with command information for LEDs, colour changes, etc. 
 	//Exchange 8 byte packets
 	
@@ -129,9 +148,9 @@
     };
 
     ext._getStatus = function() {
-        if(!device) return {status: 1, msg: 'PicoBoard disconnected'};
-        if(watchdog) return {status: 1, msg: 'Probing for PicoBoard'};
-        return {status: 2, msg: 'PicoBoard connected'};
+        if(!device) return {status: 1, msg: 'CodePad disconnected'};
+        if(watchdog) return {status: 1, msg: 'Probing for CodePad'};
+        return {status: 2, msg: 'CodePad connected'};
     }
 
     ext.whenslider = function(lessormore, sliderthreshold)
@@ -191,51 +210,275 @@
 
 //commands
 	ext.ledonoff = function(lednumber, operation){
-	
+	var count = 1;
 	var LEDCmd = new Uint8Array(5);
         LEDCmd[0] = 4;
 	LEDCmd[1] = 99;
 	
+	if(lednumber == 'all')
+	{
+		count = 9;
+		lednumber = 1;
+	}
+    do
+    {	
+		LEDCmd[1] = lednumber * 10;
+				
+		if(operation == 'ON')
+			  LEDCmd[1] = LEDCmd[1]+1;
+			
+		if (lednumber == 1)
+		{
+			LEDCmd[2] = LED1ColourCmd[0];
+			LEDCmd[3] = LED1ColourCmd[1];
+			LEDCmd[4] = LED1ColourCmd[2];
+		
+		}
+		if (lednumber == 2)
+		{
+			LEDCmd[2] = LED2ColourCmd[0];
+			LEDCmd[3] = LED2ColourCmd[1];
+			LEDCmd[4] = LED2ColourCmd[2];
+		}
+		if (lednumber == 3 )
+		{
+			LEDCmd[2] = LED3ColourCmd[0];
+			LEDCmd[3] = LED3ColourCmd[1];
+			LEDCmd[4] = LED3ColourCmd[2];
+		}
+		if (lednumber == 4 )
+		{
+			LEDCmd[2] = LED4ColourCmd[0];
+			LEDCmd[3] = LED4ColourCmd[1];
+			LEDCmd[4] = LED4ColourCmd[2];
+		}
+		if (lednumber == 5 )
+		{
+			LEDCmd[2] = LED5ColourCmd[0];
+			LEDCmd[3] = LED5ColourCmd[1];
+			LEDCmd[4] = LED5ColourCmd[2];
+		}
+		if (lednumber == 6 )
+		{
+			LEDCmd[2] = LED6ColourCmd[0];
+			LEDCmd[3] = LED6ColourCmd[1];
+			LEDCmd[4] = LED6ColourCmd[2];
+		}
+		if (lednumber == 7 )
+		{
+			LEDCmd[2] = LED7ColourCmd[0];
+			LEDCmd[3] = LED7ColourCmd[1];
+			LEDCmd[4] = LED7ColourCmd[2];
+		}
+		if (lednumber ==  8 )
+		{
+			LEDCmd[2] = LED8ColourCmd[0];
+			LEDCmd[3] = LED8ColourCmd[1];
+			LEDCmd[4] = LED8ColourCmd[2];
+		}
+		console.log("Sending LED request");
+		console.log(LEDCmd);
+		device.send(LEDCmd.buffer);
+		count--;
+        lednumber++;
+	} while(count > 1);
+    };
 	
-	LEDCmd[1] = lednumber * 10;
-	
-	if(operation == 'ON')
-	      LEDCmd[1] = LEDCmd[1]+1;
-	   	
-	console.log("Sending LED request");
-	console.log(LEDCmd);
-        device.send(LEDCmd.buffer);
-            
-     
-	};
-
 	ext.ledcolour = function(lednumber, colour){
 	
-	var LEDColourCmd = new Uint8Array(5);
-	LEDColourCmd[0] = 5;
+	var count = 1;
+	//LEDColourCmd[0] = 5;
 	
-	LEDColourCmd[1] = lednumber;
-	if(colour == 'RED')
+	//LEDColourCmd[1] = lednumber;
+	if(lednumber == 'all')
 	{
-	   LEDColourCmd[2] = 0xff;
-	   LEDColourCmd[3] = 0;
-	   LEDColourCmd[4] = 0;
+		count = 9;
+		lednumber = 1;
 	}
-	if(colour == 'GREEN')
+	do
 	{
-	   LEDColourCmd[2] = 0;
-	   LEDColourCmd[3] = 0xff;
-	   LEDColourCmd[4] = 0;
-	}
-	if(colour == 'BLUE')
-	{
-	   LEDColourCmd[2] = 0;
-	   LEDColourCmd[3] = 0;
-	   LEDColourCmd[4] = 0xff;
-	}
-	console.log("Sending LED colour request");
-	console.log(LEDColourCmd);
-        device.send(LEDColourCmd.buffer);
+		if (lednumber == 1 )
+		{
+			if(colour == 'RED')
+			{
+			   LED1ColourCmd[0] = 0xff;
+			   LED1ColourCmd[1] = 0;
+			   LED1ColourCmd[2] = 0;
+			}
+			if(colour == 'GREEN')
+			{
+			   LED1ColourCmd[0] = 0;
+			   LED1ColourCmd[1] = 0xff;
+			   LED1ColourCmd[2] = 0;
+			}
+			if(colour == 'BLUE')
+			{
+			   LED1ColourCmd[0] = 0;
+			   LED1ColourCmd[1] = 0;
+			   LED1ColourCmd[2] = 0xff;
+			}
+			console.log(LED1ColourCmd);
+		}
+		if (lednumber == 2 )
+		{
+			if(colour == 'RED')
+			{
+			   LED2ColourCmd[0] = 0xff;
+			   LED2ColourCmd[1] = 0;
+			   LED2ColourCmd[2] = 0;
+			}
+			if(colour == 'GREEN')
+			{
+			   LED2ColourCmd[0] = 0;
+			   LED2ColourCmd[1] = 0xff;
+			   LED2ColourCmd[2] = 0;
+			}
+			if(colour == 'BLUE')
+			{
+			   LED2ColourCmd[0] = 0;
+			   LED2ColourCmd[1] = 0;
+			   LED2ColourCmd[2] = 0xff;
+			}
+			console.log(LED2ColourCmd);
+		}
+		if (lednumber == 3 )
+		{
+			if(colour == 'RED')
+			{
+			   LED3ColourCmd[0] = 0xff;
+			   LED3ColourCmd[1] = 0;
+			   LED3ColourCmd[2] = 0;
+			}
+			if(colour == 'GREEN')
+			{
+			   LED3ColourCmd[0] = 0;
+			   LED3ColourCmd[1] = 0xff;
+			   LED3ColourCmd[2] = 0;
+			}
+			if(colour == 'BLUE')
+			{
+			   LED3ColourCmd[0] = 0;
+			   LED3ColourCmd[1] = 0;
+			   LED3ColourCmd[2] = 0xff;
+			}
+			console.log(LED3ColourCmd);
+		}
+		if (lednumber == 4 )
+		{
+			if(colour == 'RED')
+			{
+			   LED4ColourCmd[0] = 0xff;
+			   LED4ColourCmd[1] = 0;
+			   LED4ColourCmd[2] = 0;
+			}
+			if(colour == 'GREEN')
+			{
+			   LED4ColourCmd[0] = 0;
+			   LED4ColourCmd[1] = 0xff;
+			   LED4ColourCmd[2] = 0;
+			}
+			if(colour == 'BLUE')
+			{
+			   LED4ColourCmd[0] = 0;
+			   LED4ColourCmd[1] = 0;
+			   LED4ColourCmd[2] = 0xff;
+			}
+			console.log(LED4ColourCmd);
+		}
+		if (lednumber == 5 )
+		{
+			if(colour == 'RED')
+			{
+			   LED5ColourCmd[0] = 0xff;
+			   LED5ColourCmd[1] = 0;
+			   LED5ColourCmd[2] = 0;
+			}
+			if(colour == 'GREEN')
+			{
+			   LED5ColourCmd[0] = 0;
+			   LED5ColourCmd[1] = 0xff;
+			   LED5ColourCmd[2] = 0;
+			}
+			if(colour == 'BLUE')
+			{
+			   LED5ColourCmd[0] = 0;
+			   LED5ColourCmd[1] = 0;
+			   LED5ColourCmd[2] = 0xff;
+			}
+			console.log(LED5ColourCmd);
+		}
+		if (lednumber == 6 )
+		{
+			if(colour == 'RED')
+			{
+			   LED6ColourCmd[0] = 0xff;
+			   LED6ColourCmd[1] = 0;
+			   LED6ColourCmd[2] = 0;
+			}
+			if(colour == 'GREEN')
+			{
+			   LED6ColourCmd[0] = 0;
+			   LED6ColourCmd[1] = 0xff;
+			   LED6ColourCmd[2] = 0;
+			}
+			if(colour == 'BLUE')
+			{
+			   LED6ColourCmd[0] = 0;
+			   LED6ColourCmd[1] = 0;
+			   LED6ColourCmd[2] = 0xff;
+			}
+			console.log(LED6ColourCmd);
+		}
+		if (lednumber == 7 )
+		{
+			if(colour == 'RED')
+			{
+			   LED7ColourCmd[0] = 0xff;
+			   LED7ColourCmd[1] = 0;
+			   LED7ColourCmd[2] = 0;
+			}
+			if(colour == 'GREEN')
+			{
+			   LED7ColourCmd[0] = 0;
+			   LED7ColourCmd[1] = 0xff;
+			   LED7ColourCmd[2] = 0;
+			}
+			if(colour == 'BLUE')
+			{
+			   LED7ColourCmd[0] = 0;
+			   LED7ColourCmd[1] = 0;
+			   LED7ColourCmd[2] = 0xff;
+			}
+			console.log(LED7ColourCmd);
+		}
+		if (lednumber == 8 )
+		{
+			if(colour == 'RED')
+			{
+			   LED8ColourCmd[0] = 0xff;
+			   LED8ColourCmd[1] = 0;
+			   LED8ColourCmd[2] = 0;
+			}
+			if(colour == 'GREEN')
+			{
+			   LED8ColourCmd[0] = 0;
+			   LED8ColourCmd[1] = 0xff;
+			   LED8ColourCmd[2] = 0;
+			}
+			if(colour == 'BLUE')
+			{
+			   LED8ColourCmd[0] = 0;
+			   LED8ColourCmd[1] = 0;
+			   LED8ColourCmd[2] = 0xff;
+			}
+			console.log(LED8ColourCmd);
+		}
+		console.log("Set LED colour request");
+		console.log(count);
+		count--;
+		lednumber++;
+	} while(count > 1);
+    //    device.send(LEDColourCmd.buffer);
      //return ;
 	};
 
@@ -295,9 +538,8 @@
 ['h', 'when distance %m.lessmore %n', 'whendistance' , '>' , 10],
 ['h', 'when light %m.lessmore %n', 'whenlight' , '>', 25],
 ['h', 'when button %m.butnum is pressed', 'whenbutton' , '1'],
-[' ', 'turn LED %m.butnum %m.onoff', 'ledonoff' , '1', 'ON'],
-[' ', 'set LED %m.butnum colour to %m.col', 'ledcolour' , '1', 'RED'],
-[' ', 'set motor direction to  %m.dir', 'motordirection' , 'clockwise'],
+[' ', 'turn LED %m.lednum %m.onoff', 'ledonoff' , '1', 'ON'],
+[' ', 'set LED %m.lednum colour to %m.col', 'ledcolour' , '1', 'RED'],
 [' ', 'turn motor to  %n degrees', 'turnmotor' , 10],
 ['r', 'slider', 'getsliderval' ],
 ['r', 'knob', 'getknobval' ],
@@ -309,7 +551,8 @@
 
         menus:  {
               lessmore: ['<' , '>'],
-		   butnum: ['1','2', '3', '4','5','6','7','8','9','0','up','down'],
+		   butnum: ['1','2', '3', '4','5','6','7','8','9','0','plus','minus'],
+		   lednum: ['1','2', '3', '4','5','6','7','8', 'all'],
 			  onoff: ['ON', 'OFF'],
 			  col: ['RED', 'BLUE', 'GREEN'],
 			  dir: ['clockwise', 'anti-clockwise']
